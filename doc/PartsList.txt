@@ -1,0 +1,226 @@
+PARTS LIST
+=====INPUTS=====
+-Clock
+--1 bit, the clock, feeds into the clock on the register Accumulator
+-Input
+--16-bits, binary integer for input
+-Opcode
+--4-bits, binary code to indicate the operation
+
+=====OUTPUTS=====
+-Error
+--2 bit 01 if overflow, 10 if div by 0, 00 if no error state has occurred
+-Output
+--16 bits, the current output of the register Accumulator
+
+=====INTERFACES=====
+-Opcode Decoder (dec), 4 Select bits, 16 Output bits
+--S0, 1 bit, 2^0
+--S1, 1 bit, 2^1, used for controlling add/subtract
+--S2, 1 bit, 2^2
+--S3, 1 bit, 2^3
+--onehots, 16 possible outputs, see COMMAND TABLE for each corresponding onehot
+
+-Arithmetic Multipexer (MathMux), 3 Select bits, 16 bit data size
+--CH0 (000), cur
+--CH1 (001), Add, 	Opcode 0001
+--CH2 (010), Sub,	Opcode 0011	
+--CH3 (011), Mult,	Opcode 0010
+--CH4 (100), Div,	Opcode 0110
+--CH5 (101), Mod,	Opcode 0111
+--CH6 (110), X
+--CH7 (111), X
+--MMSel0, onehot 1,2 or 7
+--MMSel1, onehot 2 or 3
+--MMSel2, onehot 6 or 7
+--MMOut, 16 bit Mux output
+
+-MMSelect0, Or 3 in by 1 bit
+--onehot 1, 1 bit from decoder
+--onehot 2, 1 bit from decoder
+--onehot 7, 1 bit from decoder
+--MMSel0, 1 output bit
+
+-MMSelect1, Or 2 in by 1 bit
+--onehot 2, 1 bit from decoder
+--onehot 3, 1 bit from decoder
+--MMSel1, 1 output bit
+
+-MMSelect2, Or 2 in by 1 bit
+--onehot 6, 1 bit from decoder
+--onehot 7, 1 bit from decoder
+--MMSel2, 1 output bit
+
+-XOr 2 in by 16 bits, adds subtraction capabilities to adder
+--MS, input of bit extended carry in
+--regB, Value from ACC.Q
+--XR, output wire, goes into B input of Add
+
+-FullAdder (Add)
+--A, 16-bits, takes in the current value of ACC
+--B, 16-bits, takes in the value of the XOR’d input
+--Cin, 1 bit, used for the +1 in a 2’s compliment
+--Cout, 1 bit, the last carry, used for Overflow Check
+--Sum, 16-bits, the actual sum, feeds to CH1 for addition and CH2 for subtraction
+
+-Multiplier (Mul)
+--A, 16-bits, takes in the current value of ACC
+--B, 16-bits, takes in the value of the XOR’d input
+--Cout, 16 bit, the last carry, used for Overflow Check
+--Out, 16-bit output feeds to CH3 for result
+
+-Divisor (Div)
+--A, 16-bits, takes in the current value of ACC
+--B, 16-bits, takes in the value of the XOR’d input
+--DIV, 16-bit output feeds to CH4 for division result
+--MOD, 16-bit output feeds to CH5 for modulus result
+
+-Logic Multipexer (LogicMux), 3 Select bits, 16 bit data size
+--CH0 (000), X
+--CH1 (001), AND, 	Opcode 0101
+--CH2 (010), OR,	Opcode 0100	
+--CH3 (011), XOR,	Opcode 1100
+--CH4 (100), NOT,	Opcode 1101
+--CH5 (101), NAND,	Opcode 1111
+--CH6 (110), NOR,	Opcode 1110
+--CH7 (111), XNOR,	Opcode 1010
+--LMSel0, onehot 5,12,15 or 10
+--LMSel1, onehot 4,12,10 or 14
+--LMSel1, onehot 13,15,14 or 10
+--LMOut, Mux output
+
+-LMSelect0, Or 4 in by 1 bit
+--onehot 5, 1 bit from decoder
+--onehot 12, 1 bit from decoder
+--onehot 15, 1 bit from decoder 
+--onehot 10, 1 bit from decoder
+--LMSel0, output
+
+-LMSelect1, Or 4 in by 1 bit
+--onehot 4, 1 bit from decoder
+--onehot 12, 1 bit from decoder
+--onehot 10, 1 bit from decoder
+--onehot 14, 1 bit from decoder 
+--LMSel1, output
+
+-LMSelect2, Or 4 in by 1 bit
+--onehot 13, 1 bit from decoder
+--onehot 13, 1 bit from decode5
+--onehot 13, 1 bit from decode4
+--onehot 13, 1 bit from decode0 
+--LMSel2, output
+
+-AND, OR, XOR, NAND, NOR, XNOR gate
+--inB,16 bit from ACC.Q
+--inA,16 bit from input
+--out, 16 bit to MathMux
+
+-NOT gate
+--in,16 bit from input
+--out, 16 bit to MathMux
+
+-Shift Multipexer, 2 Select bits, 16 bit data out
+--CH0 (00), cur
+--CH1 (01), Rshift	Opcode 1001
+--CH2 (10), LShift	Opcode 1011
+--CH3 (11), X
+--SMSel0, onehot 11
+--SMSel1, onehot 9
+--SMOut, Mux output, 16 bits
+
+-Bit extender, 1-to-4 bit for Rshift  (Only used for Logisim out of necessity)
+--1 bit input, comes from S3
+--4 bit output, to Rshift
+
+-Bit extender, 1-to-4 bit for Lshift (Only used for Logisim out of necessity)
+--1 bit input, comes from S3
+--4 bit output, to Lshift
+
+-Lshift and Rshift, 16 bit
+-In, 16 bits from input
+-Amt, 4 bits, amount to shift, 1 or 0
+-Out, 16 bits shifted result
+
+-Output Multiplexer, 2 select bits, 16 bit data size
+--CH0 (00), cur
+--CH1 (01), SMOut
+--CH2 (10), LMOut
+--CH3 (11), MMOut
+--OMSel0, onehot 1,2,3,6,7,9 or 11
+--OMSel1, onehot 1,2,3,4,5,6,7,10,12,13,14 or 15
+--b, Mux output 
+
+-OMSelect0, Or 7 in by 1 bit
+--onehot 1, 1 bit from decoder
+--onehot 2, 1 bit from decoder
+--onehot 3, 1 bit from decoder
+--onehot 6, 1 bit from decoder
+--onehot 7, 1 bit from decoder
+--onehot 9, 1 bit from decoder 
+--onehot 11, 1 bit from decoder
+--OMSel0, 1 bit output
+
+-OMSelect1, Or 12 in by 1 bit
+--onehot 1, 1 bit from decoder
+--onehot 2, 1 bit from decoder
+--onehot 3, 1 bit from decoder
+--onehot 4, 1 bit from decoder
+--onehot 5, 1 bit from decoder
+--onehot 6, 1 bit from decoder
+--onehot 7, 1 bit from decoder
+--onehot 10, 1 bit from decoder 
+--onehot 12, 1 bit from decoder
+--onehot 13, 1 bit from decoder
+--onehot 14, 1 bit from decoder
+--onehot 15, 1 bit from decoder
+--OMSel1, 1 bit output
+
+-ACC.D, 16-bits, the next value into the register
+--D FlipFlip x16 input
+-ACC.Q, 16-bits, the current value from the register
+--D FlipFlip x16 output
+-ACC.Clk, 1 bit for the clock
+-ACC.rst, 1 bit for the reset on opcode 8 (1000)
+
+
+=====COMPONTNENTS=====
+-Gates
+--And2By16 Gate, 16 bits, one channel is the input, the other the current ACC Q value
+--Or2By16 Gate, 16 bits, one channel is the input, the other the current ACC Q value
+--XOr2By16 Gate, 16 bits, one channel is the input, the other channel a concatenation of Decoder.S1 16 times.
+--Not2By16 Gate, 16 bits, one channel is the input, the other the current ACC Q value
+--NAnd2By16 Gate, 16 bits, one channel is the input, the other the current ACC Q value
+--NOr2By16 Gate, 16 bits, one channel is the input, the other the current ACC Q value
+--XNor2By16 Gate, 16 bits, one channel is the input, the other channel a concatenation of Decoder.S1 16 times.
+--OR Gate, 16 bits, 3 channels for each MUX feeds directly to ACC.D
+--Or4By1, for select bit 0 of LogicMux
+--Or4By1, for select bit 1 of LogicMux
+--Or4By1, for select bit 2 of LogicMux
+--Or3By1, for select bit 0 of MathMux
+--Or2By1, for select bit 1 of MathMux
+--Or2By1, for select bit 2 of MathMux
+--Or7By1, for select bit 2 of OutMux
+--Or12By1, for select bit 2 of OutMux
+
+Combinational Logic Components
+--Decoder, 4-to-16 bits, converts opcode into Multiplexer selection
+--Bit extender, 1-to-4 bits, for opcode bit to LShift
+--Bit extender, 1-to-4 bits, for opcode bit to Rshift
+--LShift, 16 bit using input and extended opcode bit
+--RShift, 16 bit using input and extended opcode bit
+--MathMux, 8-channel, 16-bit multiplexor for arithmetic result
+--LogicMux, 8-channel, 16-bit multiplexor for logic result
+--ShiftMux, 4-channel, 16-bit multiplexor for shift result
+--OutMux, 4-channel, 16-bit multiplexor for picking nested mux result, outputs to ACC.D
+--Full-Adder, 16-bit, Full adder
+--Multiplier, 16-bit
+--Divider, 16-bit
+
+-Sequential Logic Components
+--ACC, 16-Bit D Register that contains the current system value
+---Each register is 1 1 bit D Flip-Flop
+
+=====MODULES=====
+-Error tests for a carry out in adder during addition, inputs S1 and Carry out.
+-Test Bench-Main module, runs clock and stimulus. (not shown)
+-Breadboard-convenient module to allow easy assembly. (not shown)

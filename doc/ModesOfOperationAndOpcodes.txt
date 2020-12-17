@@ -1,0 +1,78 @@
+LIST OF OPERATIONS WITH OPCODES
+Command Table
+ Command | Opcode	| Description
+---------+----------+-----------------------------------------
+- Nop	 |  0000	| Idle system, stay at ready state
+- Add	 |  0001	| Perform addition on stored and input values 
+- Sub	 |  0011	| Perform subtraction on stored and input values 
+- Mult	 |  0010	| Multiply stored value by input value 
+- Div	 |  0110	| Divide stored value by input value
+- Mod	 |  0111	| Calc remainder of input over stored values
+- And	 |  0101	| Perform AND op on current and input values
+- Or	 |  0100	| Perform OR op on current and input values
+- Xor	 |  1100	| Perform XOR op on current and input values
+- Not	 |  1101	| Perform NOT op on current and input values
+- Nand	 |  1111	| Perform NAND op on current and input values
+- Nor	 |  1110	| Perform NOR op on current and input values
+- Xnor	 |  1010	| Perform XNOR op on current and input values
+- Lshift |  1011	| Shift current value left by input # of bits
+- Rshift |  1001	| Shift current value right by input # of bits
+- Reset	 |  1000	| Clear all values to 0
+
+Error Tabkle
+Error	   | Label | Description
+-----------+-------+-------------------------------------------------
+- Normal   |  00   | No error
+- Overflow |  01   | If 1 from Cout of adder or multiplier, error
+- Div by 0 |  10   | Check if input operand is 0, if so error
+- X	   |  11   | Dont care
+
+STATE TABLE
+|State |Operation      |OpCode  |Overflow   |Div by 0   |Transition   |Next State   |
+|------+---------------+--------+-----------+-----------+-------------+-------------|
+|Ready | Add	       | 0001   |  0	    | 0         | Any Math    | Math        |
+|Ready | Subtract      | 0011   |  0	    | 0         | Any Math    | Math        |
+|Ready | Multiply      | 0010   |  0	    | 0         | Any Math    | Math        |
+|Ready | Divide	       | 0110   |  0	    | 0         | Any Math    | Math        |
+|Ready | Modulus       | 0111   |  0	    | 0         | Any Math    | Math        |
+|Ready | And	       | 0101   |  0        | 0         | Any Logic   | Logic       |
+|Ready | Or	       | 0100   |  0        | 0         | Any Logic   | Logic       |
+|Ready | XOr	       | 1100   |  0        | 0         | Any Logic   | Logic       |
+|Ready | Not	       | 1101   |  0        | 0         | Any Logic   | Logic       |
+|Ready | Nand	       | 1111   |  0        | 0         | Any Logic   | Logic       |
+|Ready | Nor	       | 1110   |  0        | 0         | Any Logic   | Logic       |
+|Ready | XNor	       | 1010   |  0        | 0         | Any Logic   | Logic       |
+|Ready | L-Shift       | 1011   |  0        | 0         | Any Shift   | Shift       |
+|Ready | R-Shift       | 1001   |  0        | 0         | Any Shift   | Shift       |
+|Ready | No-Op	       | 0000   |  0	    | 0         | No-Op	      | Ready       |
+|Ready | Reset	       | 1000   |  0	    | 0         | Reset	      | Ready       |
+|------+---------------+--------+-----------+-----------+-------------+-------------|
+|Math  | Add	       | 0001   |  0	    | 0         | Any Math    | Math        |
+|Math  | Subtract      | 0011   |  0	    | 0         | Any Math    | Math        |
+|Math  | Multiply      | 0010   |  0	    | 0         | Any Math    | Math        |
+|Math  | Divide	       | 0110   |  0	    | 0         | Any Math    | Math        |
+|Math  | Modulus       | 0111   |  0	    | 0         | Any Math    | Math        |
+|Math  | No-Op	       | 0000   |  0	    | 0         | No-Op	      | Math        |
+|Math  | Reset	       | 1000   |  0	    | 0         | Reset	      | Ready       |
+|Math  | Subtract      | 0011   |  1	    | 0         | Error Found | Error       |
+|Math  | Divide        | 0110   |  0	    | 1         | Error Found | Error       |
+|------+---------------+--------+-----------+-----------+-------------+-------------|
+|Logic | And	       | 0101   |  0        | 0         | Any Logic   | Logic       |
+|Logic | Or	       | 0100   |  0        | 0         | Any Logic   | Logic       |
+|Logic | XOr	       | 1100   |  0        | 0         | Any Logic   | Logic       |
+|Logic | Not	       | 1101   |  0        | 0         | Any Logic   | Logic       |
+|Logic | Nand	       | 1111   |  0        | 0         | Any Logic   | Logic       |
+|Logic | Nor	       | 1110   |  0        | 0         | Any Logic   | Logic       |
+|Logic | XNor	       | 1010   |  0        | 0         | Any Logic   | Logic       |
+|Logic | No-Op	       | 0000   |  0  	    | 0         | No-Op	      | Logic       |
+|Logic | Reset	       | 1000   |  0  	    | 0         | Reset	      | Ready       |
+|------+---------------+--------+-----------+-----------+-------------+-------------|
+|Shift | L-Shift       | 1011   |  0        | 0         | Any Shift   | Shift       |
+|Shift | R-Shift       | 1001   |  0        | 0         | Any Shift   | Shift       |
+|Shift | No-Op	       | 0000   |  0  	    | 0         | No-Op	      | Shift       |
+|Shift | Reset	       | 1000   |  0  	    | 0         | Reset	      | Ready       |
+|------+---------------+--------+-----------+-----------+-------------+-------------|
+|Error | Reset	       | 1000   |  	    |           | Reset	      | Ready       |
+|Error | All others    | All    |  others   |           | All others  | Error       |
+|------+---------------+--------+-----------+-----------+-------------+-------------|
+
